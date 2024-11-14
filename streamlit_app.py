@@ -8,7 +8,6 @@ def draw_graph(G, path=None):
     if path:
         nx.draw_networkx_edges(G, pos, edgelist=path, edge_color='red', width=2)
     plt.axis('off')
-    plt.show()
 
 st.title("Giải bài toán tìm đường đi")
 
@@ -24,12 +23,17 @@ start = st.selectbox("Chọn đỉnh bắt đầu:", G.nodes())
 end = st.selectbox("Chọn đỉnh kết thúc:", G.nodes())
 
 if st.button("Tìm đường đi"):
-    path = nx.dijkstra_path(G, start, end)
-    st.write("Đường đi ngắn nhất từ {} đến {}: {}".format(start, end, path))
-    
-    draw_graph(G, path)
-
-    # Vẽ đồ thị
-    fig, ax = plt.subplots()
-    draw_graph(G, path)
-    st.pyplot(fig)
+    try:
+        path = nx.dijkstra_path(G, start, end)
+        st.write("Đường đi ngắn nhất từ {} đến {}: {}".format(start, end, path))
+        
+        # Chỉ vẽ đồ thị nếu có đường đi
+        if path:
+            draw_graph(G, list(zip(path[:-1], path[1:])))
+            fig, ax = plt.subplots()
+            draw_graph(G, list(zip(path[:-1], path[1:])))
+            st.pyplot(fig)
+    except nx.NetworkXNoPath:
+        st.error("Không tìm thấy đường đi giữa {} và {}!".format(start, end))
+    except Exception as e:
+        st.error(f"Có lỗi xảy ra: {e}")
