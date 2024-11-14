@@ -1,11 +1,10 @@
 import streamlit as st
 import folium
+import time
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import requests
-
-import time
-from geopy.geocoders import Nominatim
+import polyline  # Thêm thư viện polyline
 
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
@@ -18,7 +17,6 @@ def get_coordinates(address):
 
 # Hàm để lấy đường đi giữa hai địa điểm
 def get_route(start_coords, end_coords):
-    # Sử dụng API miễn phí để lấy đường đi (ví dụ: OpenStreetMap)
     url = f"https://router.project-osrm.org/route/v1/driving/{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}?overview=full"
     response = requests.get(url)
     data = response.json()
@@ -29,35 +27,28 @@ def get_route(start_coords, end_coords):
 st.title("Tìm Khoảng Cách và Đường Đi")
 
 # Nhập địa chỉ
-start_address = st.text_input("Nhập địa chỉ xuất phát (ví dụ: 58 Phố Huế, Hà Nội):")
-end_address = st.text_input("Nhập địa chỉ đích (ví dụ: 123 Phố Lê Duẩn, Hà Nội):")
+start_address = st.text_input("Nhập địa chỉ xuất phát:")
+end_address = st.text_input("Nhập địa chỉ đích:")
 
 if st.button("Tìm Đường"):
     if start_address and end_address:
-        # Lấy tọa độ cho cả hai địa chỉ
         start_coords = get_coordinates(start_address)
         end_coords = get_coordinates(end_address)
 
         if start_coords and end_coords:
-            # Tính khoảng cách
             distance = geodesic(start_coords, end_coords).kilometers
-            
-            # Lấy đường đi
             route = get_route(start_coords, end_coords)
 
-            # Tạo bản đồ
             map = folium.Map(location=start_coords, zoom_start=14)
             folium.Marker(start_coords, popup=f"Xuất phát: {start_address}").add_to(map)
             folium.Marker(end_coords, popup=f"Đích: {end_address}").add_to(map)
 
             if route:
                 # Vẽ đường đi trên bản đồ
-                folium.PolyLine(locations=folium.util.decode_polyline(route), color='blue').add_to(map)
+                points = polyline.decode(route)  # Sử dụng polyline để giải mã
+                folium.PolyLine(locations=points, color='blue').add_to(map)
 
-            # Hiển thị khoảng cách
             st.write(f"Khoảng cách: {distance:.2f} km")
-
-            # Hiển thị bản đồ
             st.write(map._repr_html_(), unsafe_allow_html=True)
         else:
             st.error("Không tìm thấy tọa độ cho địa chỉ đã nhập!")
