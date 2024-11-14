@@ -4,9 +4,13 @@ from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import requests
 
+import time
+from geopy.geocoders import Nominatim
+
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
-    geolocator = Nominatim(user_agent="geoapiExercises")
+    geolocator = Nominatim(user_agent="your_unique_user_agent")  # Đặt user-agent
+    time.sleep(1)  # Thêm khoảng thời gian chờ giữa các yêu cầu
     location = geolocator.geocode(address)
     if location:
         return (location.latitude, location.longitude)
