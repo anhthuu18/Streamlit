@@ -9,7 +9,7 @@ import polyline
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
     geolocator = Nominatim(user_agent="your_unique_user_agent")
-    time.sleep(1)  # Thêm khoảng thời gian chờ giữa các yêu cầu
+    time.sleep(1)  # Thêm thời gian chờ giữa các yêu cầu
     location = geolocator.geocode(address)
     if location:
         return (location.latitude, location.longitude)
@@ -47,8 +47,10 @@ if st.button("Tìm Đường"):
                 points = polyline.decode(route)  # Sử dụng polyline để giải mã
                 folium.PolyLine(locations=points, color='blue').add_to(map)
 
+            # Hiển thị bản đồ trong Streamlit
+            folium_static(map)  # Sử dụng hàm này để hiển thị bản đồ
+
             st.write(f"Khoảng cách: {distance:.2f} km")
-            st.write(map._repr_html_(), unsafe_allow_html=True)
         else:
             st.error("Không tìm thấy tọa độ cho địa chỉ đã nhập!")
     else:
