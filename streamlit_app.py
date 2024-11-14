@@ -4,11 +4,11 @@ import time
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import requests
-import polyline  # Thêm thư viện polyline
+import polyline
 
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
-    geolocator = Nominatim(user_agent="your_unique_user_agent")  # Đặt user-agent
+    geolocator = Nominatim(user_agent="your_unique_user_agent")
     time.sleep(1)  # Thêm khoảng thời gian chờ giữa các yêu cầu
     location = geolocator.geocode(address)
     if location:
@@ -44,7 +44,6 @@ if st.button("Tìm Đường"):
             folium.Marker(end_coords, popup=f"Đích: {end_address}").add_to(map)
 
             if route:
-                # Vẽ đường đi trên bản đồ
                 points = polyline.decode(route)  # Sử dụng polyline để giải mã
                 folium.PolyLine(locations=points, color='blue').add_to(map)
 
