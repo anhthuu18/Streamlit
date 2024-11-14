@@ -1,4 +1,4 @@
 streamlit
 folium
-matplotlib.pyplot
+matplotlib
 requests
