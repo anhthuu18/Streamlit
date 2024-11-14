@@ -1,44 +1,35 @@
-
 import streamlit as st
-from simpleai.search import CspProblem, backtrack
+import networkx as nx
+import matplotlib.pyplot as plt
 
-def constraint_func(names, values):
-    return values[0] != values[1]
+def draw_graph(G, path=None):
+    pos = nx.spring_layout(G)
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=10)
+    if path:
+        nx.draw_networkx_edges(G, pos, edgelist=path, edge_color='red', width=2)
+    plt.axis('off')
+    plt.show()
 
-# Giao diện người dùng
-st.title("Giải bài toán tô màu miền Tây Úc")
+st.title("Giải bài toán tìm đường đi")
 
-# Định nghĩa tên miền và miền
-names = ('WA', 'NT', 'Q', 'NSW', 'V', 'SA', 'T')
-domain = {
-    'WA':  ['G'],
-    'NT':  ['R', 'G', 'B'],
-    'Q':   ['R', 'G', 'B'],
-    'NSW': ['R', 'G', 'B'],
-    'V':   ['R', 'G', 'B'],
-    'SA':  ['R', 'G', 'B'],
-    'T':   ['R', 'G', 'B'],
-}
+# Tạo đồ thị
+G = nx.Graph()
+G.add_edge('A', 'B', weight=1)
+G.add_edge('A', 'C', weight=4)
+G.add_edge('B', 'C', weight=2)
+G.add_edge('B', 'D', weight=5)
+G.add_edge('C', 'D', weight=1)
 
-constraints = [
-    (('SA', 'WA'), constraint_func),
-    (('SA', 'NT'), constraint_func),
-    (('SA', 'Q'), constraint_func),
-    (('SA', 'NSW'), constraint_func),
-    (('SA', 'V'), constraint_func),
-    (('WA', 'NT'), constraint_func),
-    (('NT', 'Q'), constraint_func),
-    (('Q', 'NSW'), constraint_func),
-    (('NSW', 'V'), constraint_func),
-]
+start = st.selectbox("Chọn đỉnh bắt đầu:", G.nodes())
+end = st.selectbox("Chọn đỉnh kết thúc:", G.nodes())
 
-# Bắt đầu giải bài toán
-if st.button("Tô màu"):
-    problem = CspProblem(names, domain, constraints)
-    output = backtrack(problem)
+if st.button("Tìm đường đi"):
+    path = nx.dijkstra_path(G, start, end)
+    st.write("Đường đi ngắn nhất từ {} đến {}: {}".format(start, end, path))
     
-    if output:
-        st.success("Kết quả: ")
-        st.write(output)
-    else:
-        st.error("Không tìm thấy giải pháp!")
+    draw_graph(G, path)
+
+    # Vẽ đồ thị
+    fig, ax = plt.subplots()
+    draw_graph(G, path)
+    st.pyplot(fig)
