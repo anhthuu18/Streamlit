@@ -1,13 +1,10 @@
 import streamlit as st
 import folium
 from geopy.geocoders import Nominatim
-import matplotlib.pyplot as plt
+from geopy.distance import geodesic
+import requests
 
-# Hàm tạo bản đồ với Folium
-def create_map(lat, lon):
-    return folium.Map(location=[lat, lon], zoom_start=13)
-
-# Hàm để chuyển đổi địa chỉ thành tọa độ
+# Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
     geolocator = Nominatim(user_agent="geoapiExercises")
     location = geolocator.geocode(address)
@@ -15,43 +12,50 @@ def get_coordinates(address):
         return (location.latitude, location.longitude)
     return None, None
 
-# Hàm vẽ biểu đồ với Matplotlib
-def plot_coordinates(lat, lon):
-    plt.figure(figsize=(8, 5))
-    plt.scatter(lon, lat, color='blue')
-    plt.title("Vị Trí Địa Điểm")
-    plt.xlabel("Kinh Độ")
-    plt.ylabel("Vĩ Độ")
-    plt.grid()
-    plt.xlim(lon - 0.1, lon + 0.1)
-    plt.ylim(lat - 0.1, lat + 0.1)
-    plt.axhline(y=lat, color='r', linestyle='--')
-    plt.axvline(x=lon, color='r', linestyle='--')
-    plt.show()
+# Hàm để lấy đường đi giữa hai địa điểm
+def get_route(start_coords, end_coords):
+    # Sử dụng API miễn phí để lấy đường đi (ví dụ: OpenStreetMap)
+    url = f"https://router.project-osrm.org/route/v1/driving/{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}?overview=full"
+    response = requests.get(url)
+    data = response.json()
+    if response.status_code == 200 and data['routes']:
+        return data['routes'][0]['geometry']
+    return None
 
-st.title("Hiển Thị Bản Đồ và Biểu Đồ Địa Điểm")
+st.title("Tìm Khoảng Cách và Đường Đi")
 
 # Nhập địa chỉ
-address = st.text_input("Nhập địa chỉ (ví dụ: 58 Phố Huế, Hà Nội):")
+start_address = st.text_input("Nhập địa chỉ xuất phát (ví dụ: 58 Phố Huế, Hà Nội):")
+end_address = st.text_input("Nhập địa chỉ đích (ví dụ: 123 Phố Lê Duẩn, Hà Nội):")
 
-if st.button("Hiển Thị Bản Đồ"):
-    if address:
-        # Lấy tọa độ từ địa chỉ
-        lat, lon = get_coordinates(address)
-        
-        if lat is not None and lon is not None:
+if st.button("Tìm Đường"):
+    if start_address and end_address:
+        # Lấy tọa độ cho cả hai địa chỉ
+        start_coords = get_coordinates(start_address)
+        end_coords = get_coordinates(end_address)
+
+        if start_coords and end_coords:
+            # Tính khoảng cách
+            distance = geodesic(start_coords, end_coords).kilometers
+            
+            # Lấy đường đi
+            route = get_route(start_coords, end_coords)
+
             # Tạo bản đồ
-            map = create_map(lat, lon)
-            # Đánh dấu địa điểm trên bản đồ
-            folium.Marker([lat, lon], popup=address).add_to(map)
+            map = folium.Map(location=start_coords, zoom_start=14)
+            folium.Marker(start_coords, popup=f"Xuất phát: {start_address}").add_to(map)
+            folium.Marker(end_coords, popup=f"Đích: {end_address}").add_to(map)
+
+            if route:
+                # Vẽ đường đi trên bản đồ
+                folium.PolyLine(locations=folium.util.decode_polyline(route), color='blue').add_to(map)
+
+            # Hiển thị khoảng cách
+            st.write(f"Khoảng cách: {distance:.2f} km")
 
             # Hiển thị bản đồ
             st.write(map._repr_html_(), unsafe_allow_html=True)
-
-            # Vẽ biểu đồ
-            plot_coordinates(lat, lon)
-            st.pyplot()  # Hiển thị biểu đồ trong Streamlit
         else:
-            st.error("Không tìm thấy địa chỉ đã nhập!")
+            st.error("Không tìm thấy tọa độ cho địa chỉ đã nhập!")
     else:
-        st.error("Vui lòng nhập địa chỉ!")
+        st.error("Vui lòng nhập cả hai địa chỉ!")

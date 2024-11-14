@@ -1,5 +1,4 @@
 streamlit
 folium
-matplotlib
-requests
 geopy
+requests
