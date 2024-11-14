@@ -5,6 +5,7 @@ from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import requests
 import polyline
+from streamlit_folium import folium_static  # Thêm dòng này
 
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
