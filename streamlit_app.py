@@ -1,23 +1,19 @@
 import streamlit as st
 import folium
 import time
-import heapq  # Thêm dòng này
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import requests
 import polyline
-from streamlit_folium import st_folium  # Cập nhật từ folium_static sang st_folium
+from streamlit_folium import folium_static  # Thêm dòng này
 
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
     geolocator = Nominatim(user_agent="your_unique_user_agent")
-    time.sleep(1)  # Đợi 1 giây để tránh bị chặn từ API
-    try:
-        location = geolocator.geocode(address, timeout=10)  # Tăng timeout lên 10 giây
-        if location:
-            return (location.latitude, location.longitude)
-    except Exception as e:
-        st.error(f"Lỗi khi tìm tọa độ: {e}")
+    time.sleep(1)  # Thêm thời gian chờ giữa các yêu cầu
+    location = geolocator.geocode(address)
+    if location:
+        return (location.latitude, location.longitude)
     return None, None
 
 # Hàm để lấy đường đi giữa hai địa điểm
@@ -25,38 +21,9 @@ def get_route(start_coords, end_coords):
     url = f"https://router.project-osrm.org/route/v1/driving/{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}?overview=full"
     response = requests.get(url)
     data = response.json()
-    if response.status_code == 200 and 'routes' in data and data['routes']:
+    if response.status_code == 200 and data['routes']:
         return data['routes'][0]['geometry']
     return None
-
-# Thuật toán Dijkstra
-def dijkstra(graph, start):
-    distances = {vertex: float('infinity') for vertex in graph}
-    distances[start] = 0
-    priority_queue = [(0, start)]
-    
-    while priority_queue:
-        current_distance, current_vertex = heapq.heappop(priority_queue)
-        
-        if current_distance > distances[current_vertex]:
-            continue
-        
-        for neighbor, weight in graph[current_vertex].items():
-            distance = current_distance + weight
-
-            if distance < distances[neighbor]:
-                distances[neighbor] = distance
-                heapq.heappush(priority_queue, (distance, neighbor))
-    
-    return distances
-
-# Đồ thị mẫu
-graph = {
-    'A': {'B': 1, 'C': 4},
-    'B': {'A': 1, 'C': 2, 'D': 5},
-    'C': {'A': 4, 'B': 2, 'D': 1},
-    'D': {'B': 5, 'C': 1}
-}
 
 st.title("Tìm Khoảng Cách và Đường Đi")
 
@@ -73,26 +40,18 @@ if st.button("Tìm Đường"):
             distance = geodesic(start_coords, end_coords).kilometers
             route = get_route(start_coords, end_coords)
 
-            # Sử dụng thuật toán Dijkstra
-            start_vertex = 'A'  # Thay thế bằng địa chỉ xuất phát đã được mã hóa
-            end_vertex = 'D'    # Thay thế bằng địa chỉ đích đã được mã hóa
-
-            shortest_paths = dijkstra(graph, start_vertex)
-            shortest_distance = shortest_paths[end_vertex]
-
-            # Tạo bản đồ
             map = folium.Map(location=start_coords, zoom_start=14)
             folium.Marker(start_coords, popup=f"Xuất phát: {start_address}").add_to(map)
             folium.Marker(end_coords, popup=f"Đích: {end_address}").add_to(map)
 
             if route:
-                points = polyline.decode(route)
+                points = polyline.decode(route)  # Sử dụng polyline để giải mã
                 folium.PolyLine(locations=points, color='blue').add_to(map)
             
-            # Hiển thị bản đồ
-            st_folium(map, width=725)  # Chỉ định chiều rộng của bản đồ
+            # Hiển thị bản đồ trong Streamlit
+            folium_static(map)  # Sử dụng hàm này để hiển thị bản đồ
+            
             st.write(f"Khoảng cách: {distance:.2f} km")
-            st.write(f"Khoảng cách ngắn nhất (Dijkstra): {shortest_distance}")
 
         else:
             st.error("Không tìm thấy tọa độ cho địa chỉ đã nhập!")
