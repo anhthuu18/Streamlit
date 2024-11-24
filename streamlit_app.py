@@ -62,8 +62,12 @@ def get_route(start, end):
     path.reverse()
     return path if shortest_paths[end] < float('infinity') else None
 
-st.title("Tìm Khoảng Cách và Đường Đi")
-
+# Thêm đoạn mã kiểm tra
+route = get_route("A", "D")  # Giả định sử dụng đỉnh A và D
+if route:
+    st.write(f"Đường đi: {route}")
+else:
+    st.error("Không tìm thấy đường đi giữa các địa điểm!")
 # Nhập địa chỉ
 start_address = st.text_input("Nhập địa chỉ xuất phát:")
 end_address = st.text_input("Nhập địa chỉ đích:")
