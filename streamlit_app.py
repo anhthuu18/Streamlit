@@ -11,7 +11,7 @@ from streamlit_folium import st_folium  # Cập nhật từ folium_static sang s
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
     geolocator = Nominatim(user_agent="your_unique_user_agent")
-    time.sleep(1)
+    time.sleep(1)  # Đợi 1 giây để tránh bị chặn từ API
     location = geolocator.geocode(address)
     if location:
         return (location.latitude, location.longitude)
@@ -22,7 +22,7 @@ def get_route(start_coords, end_coords):
     url = f"https://router.project-osrm.org/route/v1/driving/{start_coords[1]},{start_coords[0]};{end_coords[1]},{end_coords[0]}?overview=full"
     response = requests.get(url)
     data = response.json()
-    if response.status_code == 200 and data['routes']:
+    if response.status_code == 200 and 'routes' in data and data['routes']:
         return data['routes'][0]['geometry']
     return None
 
@@ -73,9 +73,11 @@ if st.button("Tìm Đường"):
             # Sử dụng thuật toán Dijkstra
             start_vertex = 'A'  # Thay thế bằng địa chỉ xuất phát đã được mã hóa
             end_vertex = 'D'    # Thay thế bằng địa chỉ đích đã được mã hóa
+
             shortest_paths = dijkstra(graph, start_vertex)
             shortest_distance = shortest_paths[end_vertex]
 
+            # Tạo bản đồ
             map = folium.Map(location=start_coords, zoom_start=14)
             folium.Marker(start_coords, popup=f"Xuất phát: {start_address}").add_to(map)
             folium.Marker(end_coords, popup=f"Đích: {end_address}").add_to(map)
@@ -84,7 +86,8 @@ if st.button("Tìm Đường"):
                 points = polyline.decode(route)
                 folium.PolyLine(locations=points, color='blue').add_to(map)
             
-            st_folium(map)  # Sử dụng st_folium thay vì folium_static
+            # Hiển thị bản đồ
+            st_folium(map, width=725)  # Chỉ định chiều rộng của bản đồ
             st.write(f"Khoảng cách: {distance:.2f} km")
             st.write(f"Khoảng cách ngắn nhất (Dijkstra): {shortest_distance}")
 
