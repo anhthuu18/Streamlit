@@ -1,16 +1,17 @@
 import streamlit as st
 import folium
 import time
+import heapq  # Thêm dòng này
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import requests
 import polyline
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium  # Cập nhật từ folium_static sang st_folium
 
 # Hàm để lấy tọa độ từ địa chỉ
 def get_coordinates(address):
     geolocator = Nominatim(user_agent="your_unique_user_agent")
-    time.sleep(1)  # Thêm thời gian chờ giữa các yêu cầu
+    time.sleep(1)
     location = geolocator.geocode(address)
     if location:
         return (location.latitude, location.longitude)
@@ -46,7 +47,7 @@ def dijkstra(graph, start):
     
     return distances
 
-# Đồ thị mẫu - bạn cần cập nhật nó với dữ liệu thực tế
+# Đồ thị mẫu
 graph = {
     'A': {'B': 1, 'C': 4},
     'B': {'A': 1, 'C': 2, 'D': 5},
@@ -83,7 +84,7 @@ if st.button("Tìm Đường"):
                 points = polyline.decode(route)
                 folium.PolyLine(locations=points, color='blue').add_to(map)
             
-            folium_static(map)
+            st_folium(map)  # Sử dụng st_folium thay vì folium_static
             st.write(f"Khoảng cách: {distance:.2f} km")
             st.write(f"Khoảng cách ngắn nhất (Dijkstra): {shortest_distance}")
 
