@@ -51,7 +51,7 @@ if st.button("Tìm Đường"):
             # Hiển thị bản đồ trong Streamlit
             folium_static(map)  # Sử dụng hàm này để hiển thị bản đồ
             
-            st.write(f"Khoảng cách: {distance:.2f} km")
+            #st.write(f"Khoảng cách: {distance:.2f} km")
 
         else:
             st.error("Không tìm thấy tọa độ cho địa chỉ đã nhập!")
