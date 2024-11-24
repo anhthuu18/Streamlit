@@ -12,9 +12,12 @@ from streamlit_folium import st_folium  # Cập nhật từ folium_static sang s
 def get_coordinates(address):
     geolocator = Nominatim(user_agent="your_unique_user_agent")
     time.sleep(1)  # Đợi 1 giây để tránh bị chặn từ API
-    location = geolocator.geocode(address)
-    if location:
-        return (location.latitude, location.longitude)
+    try:
+        location = geolocator.geocode(address, timeout=10)  # Tăng timeout lên 10 giây
+        if location:
+            return (location.latitude, location.longitude)
+    except Exception as e:
+        st.error(f"Lỗi khi tìm tọa độ: {e}")
     return None, None
 
 # Hàm để lấy đường đi giữa hai địa điểm
